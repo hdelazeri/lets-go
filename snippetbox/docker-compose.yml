@@ -1,0 +1,13 @@
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: snippetbox
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-volume:/var/lib/mysql
+
+volumes:
+  db-volume:
