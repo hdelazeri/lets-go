@@ -12,7 +12,7 @@ http:
       {
         "title": "Moana",
         "year": 2016,
-        "runtime": 107,
+        "runtime": "107 mins",
         "genres": ["animation", "adventure"]
       }
   auth: inherit
