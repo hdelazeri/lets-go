@@ -6,6 +6,15 @@ info:
 http:
   method: POST
   url: "{{BASE_URL}}/v1/movies"
+  body:
+    type: json
+    data: |-
+      {
+        "title": "Moana",
+        "year": 2016,
+        "runtime": 107,
+        "genres": ["animation", "adventure"]
+      }
   auth: inherit
 
 settings:
