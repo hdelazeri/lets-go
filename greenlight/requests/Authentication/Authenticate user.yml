@@ -10,10 +10,18 @@ http:
     type: json
     data: |-
       {
-        "email": "alice@example.com",
+        "email": "faith@example.com",
         "password": "pa55word"
       }
   auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const token = res.body.authentication_token.token
+
+        bru.setEnvVar("BEARER_TOKEN", token)
 
 settings:
   encodeUrl: true
