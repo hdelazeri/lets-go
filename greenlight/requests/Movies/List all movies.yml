@@ -5,11 +5,12 @@ info:
 
 http:
   method: GET
-  url: "{{BASE_URL}}/v1/movies?title=the club"
+  url: "{{BASE_URL}}/v1/movies?sort=-runtime"
   params:
     - name: title
       value: the club
       type: query
+      disabled: true
     - name: genres
       value: western
       type: query
@@ -23,9 +24,8 @@ http:
       type: query
       disabled: true
     - name: sort
-      value: foo
+      value: -runtime
       type: query
-      disabled: true
   auth: inherit
 
 settings:
