@@ -1,0 +1,21 @@
+info:
+  name: Activate user
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: "{{BASE_URL}}/v1/users/activated"
+  body:
+    type: json
+    data: |-
+      {
+        "token": "YM3HFCTHDUO3XQ2UIODGDOF27X"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
