@@ -5,16 +5,15 @@ info:
 
 http:
   method: GET
-  url: "{{BASE_URL}}/v1/movies"
+  url: "{{BASE_URL}}/v1/movies?genres=western"
   params:
     - name: title
-      value: godfather
+      value: moana
       type: query
       disabled: true
     - name: genres
-      value: crime,drama
+      value: western
       type: query
-      disabled: true
     - name: page
       value: "-1"
       type: query
