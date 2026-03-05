@@ -5,15 +5,15 @@ info:
 
 http:
   method: GET
-  url: "{{BASE_URL}}/v1/movies?genres=western"
+  url: "{{BASE_URL}}/v1/movies?title=the club"
   params:
     - name: title
-      value: moana
+      value: the club
       type: query
-      disabled: true
     - name: genres
       value: western
       type: query
+      disabled: true
     - name: page
       value: "-1"
       type: query
