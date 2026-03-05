@@ -5,22 +5,24 @@ info:
 
 http:
   method: GET
-  url: "{{BASE_URL}}/v1/movies?title=godfather&genres=crime,drama&page=1&page_size=5&sort=year"
+  url: "{{BASE_URL}}/v1/movies?page=-1&page_size=-1&sort=foo"
   params:
     - name: title
       value: godfather
       type: query
+      disabled: true
     - name: genres
       value: crime,drama
       type: query
+      disabled: true
     - name: page
-      value: "1"
+      value: "-1"
       type: query
     - name: page_size
-      value: "5"
+      value: "-1"
       type: query
     - name: sort
-      value: year
+      value: foo
       type: query
   auth: inherit
 
