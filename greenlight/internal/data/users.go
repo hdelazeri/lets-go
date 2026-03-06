@@ -174,7 +174,7 @@ func (m UserModel) Update(user *User) error {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key" (23505)`:
 			return ErrDuplicateEmail
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrEditConflit
+			return ErrEditConflict
 		default:
 			return err
 		}
