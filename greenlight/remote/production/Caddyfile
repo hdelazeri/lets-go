@@ -1,0 +1,8 @@
+{
+    email hdelazeri@hdelazeri.dev
+}
+
+greenlight-production.orb.local {
+    respond /debug/* "Not permitted" 403
+    reverse_proxy localhost:4000
+}
