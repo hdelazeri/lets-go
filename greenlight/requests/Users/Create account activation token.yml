@@ -1,16 +1,16 @@
 info:
-  name: Activate user
+  name: Create account activation token
   type: http
-  seq: 2
+  seq: 5
 
 http:
-  method: PUT
-  url: "{{BASE_URL}}/v1/users/activated"
+  method: POST
+  url: "{{BASE_URL}}/v1/tokens/activation"
   body:
     type: json
     data: |-
       {
-        "token": "G3DIT3QZV7TUCA2XG3HYPSUN6Y"
+        "email": "bob@example.com"
       }
   auth: inherit
 
