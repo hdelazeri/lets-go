@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 	"github.com/hdelazeri/lets-go-snippetbox/internal/models/mocks"
 )
 

@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/hdelazeri/lets-go-snippetbox/internal/assert"
@@ -70,7 +71,7 @@ func TestSnippetView(t *testing.T) {
 
 			res := ts.get(t, tt.urlPath)
 			assert.Equal(t, res.status, tt.wantStatus)
-			assert.StringContains(t, res.body, tt.wantBody)
+			assert.True(t, strings.Contains(res.body, tt.wantBody))
 		})
 	}
 }
@@ -185,7 +186,7 @@ func TestUserSignup(t *testing.T) {
 			res = ts.postForm(t, "/user/signup", form)
 
 			assert.Equal(t, res.status, tt.wantStatus)
-			assert.StringContains(t, res.body, tt.wantFormTag)
+			assert.True(t, strings.Contains(res.body, tt.wantFormTag))
 		})
 	}
 }
@@ -218,6 +219,6 @@ func TestSnippetCreate(t *testing.T) {
 
 		res = ts.get(t, "/snippet/create")
 		assert.Equal(t, res.status, http.StatusOK)
-		assert.StringContains(t, res.body, `<form action="/snippet/create" method="post">`)
+		assert.True(t, strings.Contains(res.body, `<form action="/snippet/create" method="post">`))
 	})
 }

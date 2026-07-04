@@ -129,6 +129,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
 	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
 	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field must be at least 8 characters long")
+	form.CheckField(validator.MaxBytes(form.Password, 72), "password", "This field must be less than 72 bytes long")
 
 	if !form.Valid() {
 		data := app.newTemplateData(r)
@@ -181,6 +182,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
 	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "This field must be a valid email address")
 	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.MaxBytes(form.Password, 72), "password", "This field must be less than 72 bytes long")
 
 	if !form.Valid() {
 		data := app.newTemplateData(r)

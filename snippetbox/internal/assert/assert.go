@@ -1,30 +1,52 @@
 package assert
 
 import (
-	"strings"
+	"reflect"
 	"testing"
 )
 
-func Equal[T comparable](t *testing.T, actual, expected T) {
+func Equal[T any](t *testing.T, actual, expected T) {
 	t.Helper()
 
-	if actual != expected {
+	if !isEqual(actual, expected) {
 		t.Errorf("got %v; want %v", actual, expected)
 	}
 }
 
-func StringContains(t *testing.T, actual, expectedSubstring string) {
+func True(t *testing.T, got bool) {
 	t.Helper()
 
-	if !strings.Contains(actual, expectedSubstring) {
-		t.Errorf("got %q; expected to contain: %q", actual, expectedSubstring)
+	if !got {
+		t.Errorf("got %v; want true", got)
 	}
 }
 
-func NilError(t *testing.T, actual error) {
+func Nil(t *testing.T, got any) {
 	t.Helper()
 
-	if actual != nil {
-		t.Errorf("got %v; expected: nil", actual)
+	if !isNil(got) {
+		t.Errorf("got %v; want nil", got)
 	}
+}
+
+func isEqual[T any](got, want T) bool {
+	if isNil(got) && isNil(want) {
+		return true
+	}
+
+	return reflect.DeepEqual(got, want)
+}
+
+func isNil(v any) bool {
+	if v == nil {
+		return true
+	}
+
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice, reflect.UnsafePointer:
+		return rv.IsNil()
+	}
+
+	return false
 }

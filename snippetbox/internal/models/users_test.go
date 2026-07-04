@@ -41,7 +41,7 @@ func TestUserModelExists(t *testing.T) {
 
 			exists, err := m.Exists(tt.userID)
 			assert.Equal(t, exists, tt.want)
-			assert.NilError(t, err)
+			assert.Nil(t, err)
 		})
 	}
 }

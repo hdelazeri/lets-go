@@ -50,6 +50,10 @@ func MinChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) >= n
 }
 
+func MaxBytes(value string, n int) bool {
+	return len(value) <= n
+}
+
 func PermittedValue[T comparable](value T, permittedValues ...T) bool {
 	return slices.Contains(permittedValues, value)
 }
