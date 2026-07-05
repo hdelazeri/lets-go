@@ -9,18 +9,14 @@ import (
 
 type contextKey string
 
-const userContextKey = contextKey("user")
+const authenticatedUserContextKey = contextKey("authenticatedUser")
 
-func (app *application) contextSetUser(r *http.Request, user *data.User) *http.Request {
-	ctx := context.WithValue(r.Context(), userContextKey, user)
+func (app *application) contextSetAuthenticatedUser(r *http.Request, user data.User) *http.Request {
+	ctx := context.WithValue(r.Context(), authenticatedUserContextKey, user)
 	return r.WithContext(ctx)
 }
 
-func (app *application) contextGetUser(r *http.Request) *data.User {
-	user, ok := r.Context().Value(userContextKey).(*data.User)
-	if !ok {
-		panic("missing user value in request context")
-	}
-
-	return user
+func (app *application) contextGetAuthenticatedUser(r *http.Request) (data.User, bool) {
+	user, ok := r.Context().Value(authenticatedUserContextKey).(data.User)
+	return user, ok
 }

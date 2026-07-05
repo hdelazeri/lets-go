@@ -24,8 +24,8 @@ type Token struct {
 	Scope     string    `json:"-"`
 }
 
-func generateToken(userID int, ttl time.Duration, scope string) *Token {
-	token := &Token{
+func generateToken(userID int, ttl time.Duration, scope string) Token {
+	token := Token{
 		Plaintext: rand.Text(),
 		UserID:    userID,
 		Expiry:    time.Now().Add(ttl),
@@ -47,14 +47,14 @@ type TokenModel struct {
 	DB *sql.DB
 }
 
-func (m TokenModel) New(userID int, ttl time.Duration, scope string) (*Token, error) {
+func (m TokenModel) New(userID int, ttl time.Duration, scope string) (Token, error) {
 	token := generateToken(userID, ttl, scope)
 
-	err := m.Insert(token)
+	err := m.insert(token)
 	return token, err
 }
 
-func (m TokenModel) Insert(token *Token) error {
+func (m TokenModel) insert(token Token) error {
 	query := `
 		INSERT INTO tokens (hash, user_id, expiry, scope)
 		VALUES ($1, $2, $3, $4)

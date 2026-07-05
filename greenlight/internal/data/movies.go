@@ -21,7 +21,7 @@ type Movie struct {
 	Version   int       `json:"version"`
 }
 
-func ValidateMovie(v *validator.Validator, movie *Movie) {
+func ValidateMovie(v *validator.Validator, movie Movie) {
 	v.Check(movie.Title != "", "title", "must be provided")
 	v.Check(len(movie.Title) <= 500, "title", "must not be more than 500 bytes long")
 
@@ -42,7 +42,7 @@ type MovieModel struct {
 	DB *sql.DB
 }
 
-func (m MovieModel) Insert(movie *Movie) error {
+func (m MovieModel) Insert(movie Movie) (Movie, error) {
 	query := `
 		INSERT INTO movies (title, year, runtime, genres)
 		VALUES ($1, $2, $3, $4)
@@ -54,12 +54,14 @@ func (m MovieModel) Insert(movie *Movie) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+
+	return movie, err
 }
 
-func (m MovieModel) Get(id int) (*Movie, error) {
+func (m MovieModel) Get(id int) (Movie, error) {
 	if id < 1 {
-		return nil, ErrRecordNotFound
+		return Movie{}, ErrRecordNotFound
 	}
 
 	query := `
@@ -85,16 +87,16 @@ func (m MovieModel) Get(id int) (*Movie, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return Movie{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return Movie{}, err
 		}
 	}
 
-	return &movie, nil
+	return movie, nil
 }
 
-func (m MovieModel) Update(movie *Movie) error {
+func (m MovieModel) Update(movie Movie) (Movie, error) {
 	query := `
 		UPDATE movies
 		SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
@@ -118,13 +120,13 @@ func (m MovieModel) Update(movie *Movie) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrEditConflict
+			return Movie{}, ErrEditConflict
 		default:
-			return err
+			return Movie{}, err
 		}
 	}
 
-	return nil
+	return movie, nil
 }
 
 func (m MovieModel) Delete(id int) error {
@@ -157,7 +159,7 @@ func (m MovieModel) Delete(id int) error {
 	return nil
 }
 
-func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
+func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]Movie, Metadata, error) {
 	query := fmt.Sprintf(`
 		SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version
 		FROM movies
@@ -179,7 +181,7 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	defer rows.Close()
 
 	totalRecords := 0
-	movies := []*Movie{}
+	movies := []Movie{}
 
 	for rows.Next() {
 		var movie Movie
@@ -198,7 +200,7 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 			return nil, Metadata{}, err
 		}
 
-		movies = append(movies, &movie)
+		movies = append(movies, movie)
 	}
 
 	if err = rows.Err(); err != nil {

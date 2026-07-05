@@ -23,7 +23,7 @@ func (app *application) createMoviehandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	movie := &data.Movie{
+	movie := data.Movie{
 		Title:   input.Title,
 		Year:    input.Year,
 		Runtime: input.Runtime,
@@ -37,7 +37,7 @@ func (app *application) createMoviehandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.models.Movies.Insert(movie)
+	movie, err = app.models.Movies.Insert(movie)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -132,7 +132,7 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.models.Movies.Update(movie)
+	movie, err = app.models.Movies.Update(movie)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrEditConflict):

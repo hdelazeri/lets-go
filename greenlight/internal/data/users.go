@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/hdelazeri/lets-go-greenlight/internal/validator"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var ErrDuplicateEmail = errors.New("duplicate email")
-
-var AnonymousUser = &User{}
 
 type User struct {
 	ID        int       `json:"id"`
@@ -23,10 +22,6 @@ type User struct {
 	Password  password  `json:"-"`
 	Activated bool      `json:"activated"`
 	Version   int       `json:"-"`
-}
-
-func (u *User) IsAnonymous() bool {
-	return u == AnonymousUser
 }
 
 type password struct {
@@ -71,7 +66,7 @@ func ValidatePasswordPlaintext(v *validator.Validator, password string) {
 	v.Check(len(password) <= 72, "password", "mus not be more than 72 bytes long")
 }
 
-func ValidateUser(v *validator.Validator, user *User) {
+func ValidateUser(v *validator.Validator, user User) {
 	v.Check(user.Name != "", "name", "must be provided")
 	v.Check(len(user.Name) <= 500, "name", "must not be more than 500 bytes long")
 
@@ -90,7 +85,7 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func (m UserModel) Insert(user *User) error {
+func (m UserModel) Insert(user User) (User, error) {
 	query := `
 		INSERT INTO users (name, email, password_hash, activated)
 		VALUES ($1, $2, $3, $4)
@@ -104,18 +99,19 @@ func (m UserModel) Insert(user *User) error {
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.ID, &user.CreatedAt, &user.Version)
 	if err != nil {
+		var pqErr *pq.Error
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key" (23505)`:
-			return ErrDuplicateEmail
+		case errors.As(err, &pqErr) && pqErr.Code == "23505" && pqErr.Constraint == "users_email_key":
+			return User{}, ErrDuplicateEmail
 		default:
-			return err
+			return User{}, err
 		}
 	}
 
-	return nil
+	return user, nil
 }
 
-func (m UserModel) GetByEmail(email string) (*User, error) {
+func (m UserModel) GetByEmail(email string) (User, error) {
 	query := `
 		SELECT id, created_At, name, email, password_hash, activated, version
 		FROM users
@@ -139,16 +135,16 @@ func (m UserModel) GetByEmail(email string) (*User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return User{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return User{}, err
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }
 
-func (m UserModel) Update(user *User) error {
+func (m UserModel) Update(user User) (User, error) {
 	query := `
 		UPDATE users
 		SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
@@ -170,20 +166,21 @@ func (m UserModel) Update(user *User) error {
 
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
 	if err != nil {
+		var pqErr *pq.Error
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key" (23505)`:
-			return ErrDuplicateEmail
+		case errors.As(err, &pqErr) && pqErr.Code == "23505" && pqErr.Constraint == "users_email_key":
+			return User{}, ErrDuplicateEmail
 		case errors.Is(err, sql.ErrNoRows):
-			return ErrEditConflict
+			return User{}, ErrEditConflict
 		default:
-			return err
+			return User{}, err
 		}
 	}
 
-	return nil
+	return user, nil
 }
 
-func (m UserModel) GetForToken(tokenScope, TokenPlaintext string) (*User, error) {
+func (m UserModel) GetForToken(tokenScope, TokenPlaintext string) (User, error) {
 	tokenHash := sha256.Sum256([]byte(TokenPlaintext))
 
 	query := `
@@ -215,11 +212,11 @@ func (m UserModel) GetForToken(tokenScope, TokenPlaintext string) (*User, error)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return User{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return User{}, err
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }

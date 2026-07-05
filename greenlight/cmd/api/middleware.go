@@ -94,7 +94,6 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		authorizationHeader := r.Header.Get("Authorization")
 
 		if authorizationHeader == "" {
-			r = app.contextSetUser(r, data.AnonymousUser)
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -126,45 +125,46 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		r = app.contextSetUser(r, user)
+		r = app.contextSetAuthenticatedUser(r, user)
 
 		next.ServeHTTP(w, r)
 	})
 }
 
-func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
+//lint:ignore U1000 middleware currently unused, but might be in the future
+func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := app.contextGetUser(r)
+		authenticatedUser, found := app.contextGetAuthenticatedUser(r)
 
-		if user.IsAnonymous() {
+		if !found {
 			app.authenticationRequiredResponse(w, r)
 			return
 		}
 
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
-	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := app.contextGetUser(r)
-
-		if !user.Activated {
+		if !authenticatedUser.Activated {
 			app.inactiveAccountResponse(w, r)
 			return
 		}
 
 		next.ServeHTTP(w, r)
 	})
-
-	return app.requireAuthenticatedUser(fn)
 }
 
 func (app *application) requirePermission(code string, next http.HandlerFunc) http.HandlerFunc {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		user := app.contextGetUser(r)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authenticatedUser, found := app.contextGetAuthenticatedUser(r)
 
-		permissions, err := app.models.Permissions.GetAllForUser(user.ID)
+		if !found {
+			app.authenticationRequiredResponse(w, r)
+			return
+		}
+
+		if !authenticatedUser.Activated {
+			app.inactiveAccountResponse(w, r)
+			return
+		}
+
+		permissions, err := app.models.Permissions.GetAllForUser(authenticatedUser.ID)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
@@ -176,9 +176,7 @@ func (app *application) requirePermission(code string, next http.HandlerFunc) ht
 		}
 
 		next.ServeHTTP(w, r)
-	}
-
-	return app.requireActivatedUser(fn)
+	})
 }
 
 func (app *application) enableCORS(next http.Handler) http.Handler {
